@@ -36,17 +36,6 @@ sidebar.addEventListener('mouseleave', () => {
 });
 
 /* ===========================
-   Utilidades
-   =========================== */
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-/* ===========================
    Manejo de Valores (Mensajes)
    =========================== */
 const valoresForm = document.getElementById('valores-form');
@@ -55,7 +44,6 @@ const valoresTableBody = document.querySelector('#valores-table tbody');
 let valoresData = JSON.parse(localStorage.getItem('valoresData') || '[]');
 
 function renderValores() {
-  if (!valoresTableBody) return;
   valoresTableBody.innerHTML = '';
   valoresData.forEach((v, idx) => {
     const tr = document.createElement('tr');
@@ -73,47 +61,33 @@ function renderValores() {
   });
 }
 
-if (valoresForm) {
-  valoresForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const h = document.getElementById('valores-hospital').value.trim();
-    const p = document.getElementById('valores-param').value.trim();
-    const mi = document.getElementById('valores-min').value.trim();
-    const ma = document.getElementById('valores-max').value.trim();
-    const u = document.getElementById('valores-unidad').value.trim();
+valoresForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const h = document.getElementById('valores-hospital').value.trim();
+  const p = document.getElementById('valores-param').value.trim();
+  const mi = document.getElementById('valores-min').value.trim();
+  const ma = document.getElementById('valores-max').value.trim();
+  const u = document.getElementById('valores-unidad').value.trim();
 
-    if (!h || !p) {
-      alert('Hospital y parámetro son obligatorios.');
-      return false;
+  if (!h || !p) return alert('Hospital y parámetro son obligatorios.');
+
+  valoresData.push({ hospital: h, param: p, min: mi, max: ma, unidad: u });
+  localStorage.setItem('valoresData', JSON.stringify(valoresData));
+  renderValores();
+  valoresForm.reset();
+});
+
+// Delegación para eliminar
+valoresTableBody?.addEventListener('click', (e) => {
+  if (e.target.matches('.btn-delete')) {
+    const idx = parseInt(e.target.dataset.idx, 10);
+    if (confirm('Eliminar este valor de referencia?')) {
+      valoresData.splice(idx, 1);
+      localStorage.setItem('valoresData', JSON.stringify(valoresData));
+      renderValores();
     }
-
-    valoresData.push({ hospital: h, param: p, min: mi, max: ma, unidad: u });
-    localStorage.setItem('valoresData', JSON.stringify(valoresData));
-    renderValores();
-    valoresForm.reset();
-    
-    return false;
-  });
-}
-
-// Delegación para eliminar valores
-if (valoresTableBody) {
-  valoresTableBody.addEventListener('click', (e) => {
-    if (e.target.matches('.btn-delete')) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const idx = parseInt(e.target.dataset.idx, 10);
-      if (confirm('¿Eliminar este valor de referencia?')) {
-        valoresData.splice(idx, 1);
-        localStorage.setItem('valoresData', JSON.stringify(valoresData));
-        renderValores();
-      }
-    }
-  });
-}
+  }
+});
 
 /* ===========================
    Manejo de Agenda (Calendario)
@@ -124,7 +98,6 @@ const agendaTableBody = document.querySelector('#agenda-table tbody');
 let agendaData = JSON.parse(localStorage.getItem('agendaData') || '[]');
 
 function renderAgenda() {
-  if (!agendaTableBody) return;
   agendaTableBody.innerHTML = '';
   agendaData.forEach((a, idx) => {
     const tr = document.createElement('tr');
@@ -142,59 +115,44 @@ function renderAgenda() {
   });
 }
 
-if (agendaForm) {
-  agendaForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const date = document.getElementById('agenda-date').value;
-    const time = document.getElementById('agenda-time').value;
-    const doctor = document.getElementById('agenda-doctor').value.trim();
-    const hospital = document.getElementById('agenda-hospital').value.trim();
-    const procedimiento = document.getElementById('agenda-procedimiento').value.trim();
+agendaForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const date = document.getElementById('agenda-date').value;
+  const time = document.getElementById('agenda-time').value;
+  const doctor = document.getElementById('agenda-doctor').value.trim();
+  const hospital = document.getElementById('agenda-hospital').value.trim();
+  const procedimiento = document.getElementById('agenda-procedimiento').value.trim();
 
-    if (!date || !time || !doctor) {
-      alert('Fecha, hora y doctor son obligatorios.');
-      return false;
-    }
+  if (!date || !time || !doctor) return alert('Fecha, hora y doctor son obligatorios.');
 
-    // Preferencia: mostrar alerta de conflicto según ajustes
-    const prefConflict = JSON.parse(localStorage.getItem('pref_conflict_alert') ?? 'true');
+  // Preferencia: mostrar alerta de conflicto según ajustes
+  const prefConflict = JSON.parse(localStorage.getItem('pref_conflict_alert') ?? 'true');
 
-    const collision = agendaData.some(a =>
-      a.date === date && a.time === time && a.doctor.toLowerCase() === doctor.toLowerCase()
-    );
+  const collision = agendaData.some(a =>
+    a.date === date && a.time === time && a.doctor.toLowerCase() === doctor.toLowerCase()
+  );
 
-    if (collision && prefConflict) {
-      alert(`Conflicto: el Dr. ${doctor} ya tiene una cirugía programada en esa fecha/hora.`);
-      return false;
-    }
+  if (collision && prefConflict) {
+    return alert(`Conflicto: el Dr. ${doctor} ya tiene una cirugía programada en esa fecha/hora.`);
+  }
 
-    agendaData.push({ date, time, doctor, hospital, procedimiento });
-    localStorage.setItem('agendaData', JSON.stringify(agendaData));
-    renderAgenda();
-    agendaForm.reset();
-    
-    return false;
-  });
-}
+  agendaData.push({ date, time, doctor, hospital, procedimiento });
+  localStorage.setItem('agendaData', JSON.stringify(agendaData));
+  renderAgenda();
+  agendaForm.reset();
+});
 
 // Eliminar en agenda
-if (agendaTableBody) {
-  agendaTableBody.addEventListener('click', (e) => {
-    if (e.target.matches('.btn-delete')) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const idx = parseInt(e.target.dataset.idx, 10);
-      if (confirm('¿Eliminar esta programación?')) {
-        agendaData.splice(idx, 1);
-        localStorage.setItem('agendaData', JSON.stringify(agendaData));
-        renderAgenda();
-      }
+agendaTableBody?.addEventListener('click', (e) => {
+  if (e.target.matches('.btn-delete')) {
+    const idx = parseInt(e.target.dataset.idx, 10);
+    if (confirm('Eliminar esta programación?')) {
+      agendaData.splice(idx, 1);
+      localStorage.setItem('agendaData', JSON.stringify(agendaData));
+      renderAgenda();
     }
-  });
-}
+  }
+});
 
 /* ===========================
    Manejo de Registro Quirúrgico (Reportes)
@@ -205,7 +163,6 @@ const registroTableBody = document.querySelector('#registro-table tbody');
 let registroData = JSON.parse(localStorage.getItem('registroData') || '[]');
 
 function renderRegistro() {
-  if (!registroTableBody) return;
   registroTableBody.innerHTML = '';
   registroData.forEach((r, idx) => {
     const tr = document.createElement('tr');
@@ -222,47 +179,33 @@ function renderRegistro() {
   });
 }
 
-if (registroForm) {
-  registroForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const date = document.getElementById('registro-date').value;
-    const time = document.getElementById('registro-time').value;
-    const hospital = document.getElementById('registro-hospital').value.trim();
-    const doctor = document.getElementById('registro-doctor').value.trim();
-    const paciente = document.getElementById('registro-paciente').value.trim();
-    const desc = document.getElementById('registro-desc').value.trim();
+registroForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const date = document.getElementById('registro-date').value;
+  const time = document.getElementById('registro-time').value;
+  const hospital = document.getElementById('registro-hospital').value.trim();
+  const doctor = document.getElementById('registro-doctor').value.trim();
+  const paciente = document.getElementById('registro-paciente').value.trim();
+  const desc = document.getElementById('registro-desc').value.trim();
 
-    if (!date || !time || !doctor || !paciente) {
-      alert('Fecha, hora, doctor y paciente son obligatorios.');
-      return false;
+  if (!date || !time || !doctor || !paciente) return alert('Fecha, hora, doctor y paciente son obligatorios.');
+
+  registroData.push({ date, time, hospital, doctor, paciente, desc });
+  localStorage.setItem('registroData', JSON.stringify(registroData));
+  renderRegistro();
+  registroForm.reset();
+});
+
+registroTableBody?.addEventListener('click', (e) => {
+  if (e.target.matches('.btn-delete')) {
+    const idx = parseInt(e.target.dataset.idx, 10);
+    if (confirm('Eliminar este registro quirúrgico?')) {
+      registroData.splice(idx, 1);
+      localStorage.setItem('registroData', JSON.stringify(registroData));
+      renderRegistro();
     }
-
-    registroData.push({ date, time, hospital, doctor, paciente, desc });
-    localStorage.setItem('registroData', JSON.stringify(registroData));
-    renderRegistro();
-    registroForm.reset();
-    
-    return false;
-  });
-}
-
-if (registroTableBody) {
-  registroTableBody.addEventListener('click', (e) => {
-    if (e.target.matches('.btn-delete')) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const idx = parseInt(e.target.dataset.idx, 10);
-      if (confirm('¿Eliminar este registro quirúrgico?')) {
-        registroData.splice(idx, 1);
-        localStorage.setItem('registroData', JSON.stringify(registroData));
-        renderRegistro();
-      }
-    }
-  });
-}
+  }
+});
 
 /* ===========================
    Ajustes / Protocolos
@@ -272,40 +215,103 @@ const saveProtocolosBtn = document.getElementById('save-protocolos');
 const loadProtocolosBtn = document.getElementById('load-protocolos');
 const prefCheckbox = document.getElementById('pref-conflict-alert');
 
-if (saveProtocolosBtn) {
-  saveProtocolosBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const val = protocolosText ? protocolosText.value : '';
-    localStorage.setItem('protocolos_doc', val);
-    alert('Protocolos guardados localmente.');
-  });
+saveProtocolosBtn?.addEventListener('click', () => {
+  const val = protocolosText.value;
+  localStorage.setItem('protocolos_doc', val);
+  alert('Protocolos guardados localmente.');
+});
+
+loadProtocolosBtn?.addEventListener('click', () => {
+  const saved = localStorage.getItem('protocolos_doc') || '';
+  protocolosText.value = saved;
+  alert('Protocolos cargados.');
+});
+
+prefCheckbox?.addEventListener('change', () => {
+  localStorage.setItem('pref_conflict_alert', JSON.stringify(prefCheckbox.checked));
+});
+
+/* ===========================
+   Utilidades & carga inicial
+   =========================== */
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
-if (loadProtocolosBtn) {
-  loadProtocolosBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const saved = localStorage.getItem('protocolos_doc') || '';
-    if (protocolosText) protocolosText.value = saved;
-    alert('Protocolos cargados.');
-  });
+// Carga inicial desde localStorage
+function init() {
+  // Si no hay datos de ejemplo, agrego algunos para mostrar estructura
+  if (!localStorage.getItem('valoresData')) {
+    valoresData = [
+      { hospital: 'Hospital Central', param: 'Glucosa', min: '0.5', max: '0.6', unidad: 'g/L' },
+      { hospital: 'Clínica Norte', param: 'Hemoglobina', min: '12', max: '16', unidad: 'g/dL' }
+    ];
+    localStorage.setItem('valoresData', JSON.stringify(valoresData));
+  }
+  if (!localStorage.getItem('agendaData')) {
+    agendaData = [];
+    localStorage.setItem('agendaData', JSON.stringify(agendaData));
+  }
+  if (!localStorage.getItem('registroData')) {
+    registroData = [];
+    localStorage.setItem('registroData', JSON.stringify(registroData));
+  }
+
+  // ----------------- REEMPLAZAR ESTO DENTRO DE init() -----------------
+  // Preferencias (seguro: solo setear checkbox si existe)
+  if (localStorage.getItem('pref_conflict_alert') === null) {
+    localStorage.setItem('pref_conflict_alert', 'true');
+  }
+  const prefVal = JSON.parse(localStorage.getItem('pref_conflict_alert') ?? 'true');
+  if (prefCheckbox) {
+    try {
+      prefCheckbox.checked = prefVal;
+    } catch (err) {
+      // si por alguna razon el elemento no soporta checked, lo ignoramos
+      console.warn('prefCheckbox exists but setting checked failed:', err);
+    }
+  }
+
+  // Cargar protocolos si existen (solo si el textarea existe)
+  const prot = localStorage.getItem('protocolos_doc');
+  if (prot && protocolosText) protocolosText.value = prot;
+
+  // Refrescar tablas (siempre leer localStorage)
+  valoresData = JSON.parse(localStorage.getItem('valoresData') || '[]');
+  agendaData  = JSON.parse(localStorage.getItem('agendaData') || '[]');
+  registroData = JSON.parse(localStorage.getItem('registroData') || '[]');
+
+  renderValores();
+  renderAgenda();
+  renderRegistro();
+
+  // Inicializar pacientes (si el módulo existe)
+  if (typeof initPatients === 'function') {
+    initPatients();
+  }
 }
 
-if (prefCheckbox) {
-  prefCheckbox.addEventListener('change', () => {
-    localStorage.setItem('pref_conflict_alert', JSON.stringify(prefCheckbox.checked));
-  });
+init();
+function showTab(tabName) {
+    var contents = document.getElementsByClassName("tab-content");
+    for (var i = 0; i < contents.length; i++) {
+        contents[i].style.display = "none";
+    }
+    var tab = document.getElementById(tabName);
+    tab.style.display = "block";
+    tab.classList.add("fade-in");
 }
-
 /* ==============================
-   Módulo: Pacientes (Datos) - CORREGIDO
+   Módulo: Pacientes (Datos)
    ============================== */
 
 let patients = JSON.parse(localStorage.getItem('patientsData') || '[]');
 
+// Helpers (usa escapeHtml si ya existe en tu app.js)
 function savePatients() {
   localStorage.setItem('patientsData', JSON.stringify(patients));
 }
@@ -313,9 +319,7 @@ function savePatients() {
 function renderPatients() {
   const container = document.getElementById('patients-list');
   if (!container) return;
-  
   container.innerHTML = '';
-  
   if (patients.length === 0) {
     container.innerHTML = `<div style="color:#666; padding:10px">No hay pacientes registrados.</div>`;
     return;
@@ -330,9 +334,9 @@ function renderPatients() {
       <div class="meta">ID: ${escapeHtml(p.idnum)} • ${escapeHtml(p.age || '')} años</div>
       <div class="meta">Hospital: ${escapeHtml(p.hospital || '-')}</div>
       <div class="patient-actions">
-        <button class="icon-btn view-btn" title="Ver" type="button"><i class="fas fa-eye"></i></button>
-        <button class="icon-btn edit-btn" title="Editar" type="button"><i class="fas fa-edit"></i></button>
-        <button class="icon-btn del-btn" title="Eliminar" type="button"><i class="fas fa-trash"></i></button>
+        <button class="icon-btn view-btn" title="Ver"><i class="fas fa-eye"></i></button>
+        <button class="icon-btn edit-btn" title="Editar"><i class="fas fa-edit"></i></button>
+        <button class="icon-btn del-btn" title="Eliminar"><i class="fas fa-trash"></i></button>
       </div>
     `;
     container.appendChild(div);
@@ -343,11 +347,8 @@ function renderPatients() {
 function openModalWithPatient(id) {
   const p = patients.find(x => x.id === id);
   if (!p) return;
-  
   const modal = document.getElementById('patient-modal');
   const content = document.getElementById('modal-content');
-  
-  if (!modal || !content) return;
 
   content.innerHTML = `
     <div><strong>Nombre:</strong> <span id="m-name">${escapeHtml(p.name)}</span></div>
@@ -358,13 +359,9 @@ function openModalWithPatient(id) {
   `;
 
   // guardamos id en botones para referencia
-  const editBtn = document.getElementById('modal-edit');
-  const deleteBtn = document.getElementById('modal-delete');
-  const saveBtn = document.getElementById('modal-save');
-  
-  if (editBtn) editBtn.dataset.id = id;
-  if (deleteBtn) deleteBtn.dataset.id = id;
-  if (saveBtn) saveBtn.dataset.id = id;
+  document.getElementById('modal-edit').dataset.id = id;
+  document.getElementById('modal-delete').dataset.id = id;
+  document.getElementById('modal-save').dataset.id = id;
 
   modal.setAttribute('aria-hidden', 'false');
 }
@@ -373,25 +370,17 @@ function openModalWithPatient(id) {
 function closeModal() {
   const modal = document.getElementById('patient-modal');
   if (!modal) return;
-  
   modal.setAttribute('aria-hidden', 'true');
-  
   // asegurar estado botones
-  const editBtn = document.getElementById('modal-edit');
-  const saveBtn = document.getElementById('modal-save');
-  
-  if (editBtn) editBtn.style.display = '';
-  if (saveBtn) saveBtn.style.display = 'none';
+  document.getElementById('modal-edit').style.display = '';
+  document.getElementById('modal-save').style.display = 'none';
 }
 
 /* Hacer editable el contenido del modal */
 function enableModalEdit(id) {
   const p = patients.find(x => x.id === id);
   if (!p) return;
-  
   const content = document.getElementById('modal-content');
-  if (!content) return;
-  
   content.innerHTML = `
     <label>Nombre</label>
     <input id="edit-name" value="${escapeHtml(p.name)}" />
@@ -404,34 +393,20 @@ function enableModalEdit(id) {
     <label>Observaciones</label>
     <textarea id="edit-notes" rows="4">${escapeHtml(p.notes || '')}</textarea>
   `;
-  
-  const editBtn = document.getElementById('modal-edit');
-  const saveBtn = document.getElementById('modal-save');
-  
-  if (editBtn) editBtn.style.display = 'none';
-  if (saveBtn) saveBtn.style.display = '';
+  document.getElementById('modal-edit').style.display = 'none';
+  document.getElementById('modal-save').style.display = '';
 }
 
 /* Guardar cambios desde modal */
 function saveModalEdit(id) {
   const idx = patients.findIndex(x => x.id === id);
   if (idx === -1) return;
-  
-  const nameEl = document.getElementById('edit-name');
-  const idnumEl = document.getElementById('edit-idnum');
-  const ageEl = document.getElementById('edit-age');
-  const hospitalEl = document.getElementById('edit-hospital');
-  const notesEl = document.getElementById('edit-notes');
-  
-  if (!nameEl || !idnumEl) return;
-  
   const p = patients[idx];
-  p.name = nameEl.value.trim();
-  p.idnum = idnumEl.value.trim();
-  p.age = ageEl ? ageEl.value.trim() : '';
-  p.hospital = hospitalEl ? hospitalEl.value.trim() : '';
-  p.notes = notesEl ? notesEl.value.trim() : '';
-  
+  p.name = document.getElementById('edit-name').value.trim();
+  p.idnum = document.getElementById('edit-idnum').value.trim();
+  p.age = document.getElementById('edit-age').value.trim();
+  p.hospital = document.getElementById('edit-hospital').value.trim();
+  p.notes = document.getElementById('edit-notes').value.trim();
   patients[idx] = p;
   savePatients();
   renderPatients();
@@ -440,8 +415,7 @@ function saveModalEdit(id) {
 
 /* Eliminar paciente */
 function deletePatientById(id) {
-  if (!confirm('¿Eliminar este paciente? Esta acción no se puede deshacer.')) return;
-  
+  if (!confirm('Eliminar este paciente? Esta acción no se puede deshacer.')) return;
   patients = patients.filter(x => x.id !== id);
   savePatients();
   renderPatients();
@@ -450,15 +424,9 @@ function deletePatientById(id) {
 
 /* Export CSV */
 function exportPatientsCSV() {
-  if (patients.length === 0) { 
-    alert('No hay pacientes para exportar.'); 
-    return; 
-  }
-  
+  if (patients.length === 0) { alert('No hay pacientes para exportar.'); return; }
   const headers = ['id','name','idnum','age','hospital','notes'];
-  const rows = patients.map(p => 
-    headers.map(h => `"${String(p[h]||'').replace(/"/g,'""')}"`).join(',')
-  );
+  const rows = patients.map(p => headers.map(h => `"${String(p[h]||'').replace(/"/g,'""')}"`).join(','));
   const csv = headers.join(',') + '\n' + rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
@@ -471,247 +439,71 @@ function exportPatientsCSV() {
   URL.revokeObjectURL(url);
 }
 
-/* ===========================
-   Event Listeners - CORREGIDOS
-   =========================== */
-
-// Delegación de eventos para pacientes (evita conflictos)
-document.addEventListener('click', function(e) {
-  e.stopPropagation();
-  
-  // Ver paciente
+/* Eventos: delegación y formulario */
+document.addEventListener('click', function(e){
+  // abrir vista (card) -> ojo: botones dentro
   if (e.target.closest('.view-btn')) {
-    e.preventDefault();
-    const card = e.target.closest('.patient-card');
-    if (card && card.dataset.id) {
-      openModalWithPatient(card.dataset.id);
-    }
-    return false;
+    const id = e.target.closest('.patient-card').dataset.id;
+    openModalWithPatient(id);
   }
-  
-  // Editar desde card
+  // editar desde card
   if (e.target.closest('.edit-btn')) {
-    e.preventDefault();
-    const card = e.target.closest('.patient-card');
-    if (card && card.dataset.id) {
-      openModalWithPatient(card.dataset.id);
-      enableModalEdit(card.dataset.id);
-    }
-    return false;
+    const id = e.target.closest('.patient-card').dataset.id;
+    openModalWithPatient(id);
+    enableModalEdit(id);
   }
-  
-  // Eliminar desde card
+  // eliminar desde card
   if (e.target.closest('.del-btn')) {
-    e.preventDefault();
-    const card = e.target.closest('.patient-card');
-    if (card && card.dataset.id) {
-      deletePatientById(card.dataset.id);
-    }
-    return false;
+    const id = e.target.closest('.patient-card').dataset.id;
+    deletePatientById(id);
   }
 });
 
-// Formulario de pacientes - CORREGIDO
 const patientForm = document.getElementById('patient-form');
-if (patientForm) {
-  patientForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('Formulario de paciente enviado'); // Debug
-    
-    const nameEl = document.getElementById('patient-name');
-    const idnumEl = document.getElementById('patient-idnum');
-    const ageEl = document.getElementById('patient-age');
-    const hospitalEl = document.getElementById('patient-hospital');
-    const notesEl = document.getElementById('patient-notes');
-    
-    if (!nameEl || !idnumEl) {
-      console.error('Elementos del formulario no encontrados');
-      return false;
-    }
-    
-    const name = nameEl.value.trim();
-    const idnum = idnumEl.value.trim();
-    const age = ageEl ? ageEl.value.trim() : '';
-    const hospital = hospitalEl ? hospitalEl.value.trim() : '';
-    const notes = notesEl ? notesEl.value.trim() : '';
+patientForm?.addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('patient-name').value.trim();
+  const idnum = document.getElementById('patient-idnum').value.trim();
+  const age = document.getElementById('patient-age').value.trim();
+  const hospital = document.getElementById('patient-hospital').value.trim();
+  const notes = document.getElementById('patient-notes').value.trim();
 
-    if (!name || !idnum) {
-      alert('Nombre e ID son obligatorios.');
-      return false;
-    }
+  if (!name || !idnum) return alert('Nombre e ID son obligatorios.');
 
-    // Verificar si ya existe un paciente con ese ID
-    const exists = patients.some(p => p.idnum.toLowerCase() === idnum.toLowerCase());
-    if (exists) {
-      alert('Ya existe un paciente con ese número de ID.');
-      return false;
-    }
+  const newPatient = {
+    id: String(Date.now()),
+    name, idnum, age, hospital, notes
+  };
+  patients.unshift(newPatient); // al inicio
+  savePatients();
+  renderPatients();
+  patientForm.reset();
+});
 
-    const newPatient = {
-      id: String(Date.now() + Math.random()), // ID más único
-      name, 
-      idnum, 
-      age, 
-      hospital, 
-      notes
-    };
-    
-    console.log('Nuevo paciente:', newPatient); // Debug
-    
-    patients.unshift(newPatient); // al inicio
-    savePatients();
-    renderPatients();
-    patientForm.reset();
-    
-    // Mostrar mensaje de éxito
-    alert('Paciente agregado exitosamente.');
-    
-    return false;
-  });
-}
-
-/* Modal botones - CORREGIDOS */
-const modalClose = document.getElementById('modal-close');
-if (modalClose) {
-  modalClose.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    closeModal();
-  });
-}
-
-const patientModal = document.getElementById('patient-modal');
-if (patientModal) {
-  patientModal.addEventListener('click', function(e) {
-    if (e.target === this) {
-      e.preventDefault();
-      e.stopPropagation();
-      closeModal();
-    }
-  });
-}
-
-const modalEdit = document.getElementById('modal-edit');
-if (modalEdit) {
-  modalEdit.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const id = this.dataset.id;
-    if (id) enableModalEdit(id);
-  });
-}
-
-const modalSave = document.getElementById('modal-save');
-if (modalSave) {
-  modalSave.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const id = this.dataset.id;
-    if (id) saveModalEdit(id);
-  });
-}
-
-const modalDelete = document.getElementById('modal-delete');
-if (modalDelete) {
-  modalDelete.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    const id = this.dataset.id;
-    if (id) deletePatientById(id);
-  });
-}
+/* Modal botones */
+document.getElementById('modal-close')?.addEventListener('click', closeModal);
+document.getElementById('patient-modal')?.addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+document.getElementById('modal-edit')?.addEventListener('click', function(){
+  const id = this.dataset.id;
+  enableModalEdit(id);
+});
+document.getElementById('modal-save')?.addEventListener('click', function(){
+  const id = this.dataset.id;
+  saveModalEdit(id);
+});
+document.getElementById('modal-delete')?.addEventListener('click', function(){
+  const id = this.dataset.id;
+  deletePatientById(id);
+});
 
 /* Exportar */
-const exportBtn = document.getElementById('export-patients');
-if (exportBtn) {
-  exportBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    exportPatientsCSV();
-  });
-}
+document.getElementById('export-patients')?.addEventListener('click', exportPatientsCSV);
 
-/* ===========================
-   Función de inicialización
-   =========================== */
-function init() {
-  console.log('Inicializando aplicación...'); // Debug
-  
-  // Si no hay datos de ejemplo, agrego algunos para mostrar estructura
-  if (!localStorage.getItem('valoresData')) {
-    valoresData = [
-      { hospital: 'Hospital Central', param: 'Glucosa', min: '0.5', max: '0.6', unidad: 'g/L' },
-      { hospital: 'Clínica Norte', param: 'Hemoglobina', min: '12', max: '16', unidad: 'g/dL' }
-    ];
-    localStorage.setItem('valoresData', JSON.stringify(valoresData));
-  }
-  
-  if (!localStorage.getItem('agendaData')) {
-    agendaData = [];
-    localStorage.setItem('agendaData', JSON.stringify(agendaData));
-  }
-  
-  if (!localStorage.getItem('registroData')) {
-    registroData = [];
-    localStorage.setItem('registroData', JSON.stringify(registroData));
-  }
-
-  // Preferencias
-  if (localStorage.getItem('pref_conflict_alert') === null) {
-    localStorage.setItem('pref_conflict_alert', 'true');
-  }
-  
-  const prefVal = JSON.parse(localStorage.getItem('pref_conflict_alert') ?? 'true');
-  if (prefCheckbox) {
-    try {
-      prefCheckbox.checked = prefVal;
-    } catch (err) {
-      console.warn('prefCheckbox exists but setting checked failed:', err);
-    }
-  }
-
-  // Cargar protocolos si existen
-  const prot = localStorage.getItem('protocolos_doc');
-  if (prot && protocolosText) protocolosText.value = prot;
-
-  // Refrescar datos desde localStorage
-  valoresData = JSON.parse(localStorage.getItem('valoresData') || '[]');
-  agendaData = JSON.parse(localStorage.getItem('agendaData') || '[]');
-  registroData = JSON.parse(localStorage.getItem('registroData') || '[]');
-  patients = JSON.parse(localStorage.getItem('patientsData') || '[]');
-
-  // Renderizar todas las tablas
-  renderValores();
-  renderAgenda();
-  renderRegistro();
-  renderPatients();
-  
-  console.log('Aplicación inicializada correctamente'); // Debug
-}
-
-// Función auxiliar para las pestañas (si es necesaria)
-function showTab(tabName) {
-  var contents = document.getElementsByClassName("tab-content");
-  for (var i = 0; i < contents.length; i++) {
-    contents[i].style.display = "none";
-  }
-  var tab = document.getElementById(tabName);
-  if (tab) {
-    tab.style.display = "block";
-    tab.classList.add("fade-in");
-  }
-}
-
-// Función de inicialización de pacientes (para compatibilidad)
+/* Inicializar datos al cargar (invocar desde tu init() o directamente aquí) */
 function initPatients() {
+  // cargar patients (ya se hizo al inicio con let patients = ...)
   renderPatients();
 }
 
-// Inicializar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}

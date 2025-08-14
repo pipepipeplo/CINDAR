@@ -123,24 +123,3 @@ a {
 
 
 
-
-/* Diseño responsive para pantallas pequeñas */
-@media (max-width: 768px) {
-    body {
-        font-size: 16px;
-        padding: 10px;
-    }
-    img {
-        max-width: 100%;
-        height: auto;
-    }
-    input, button, select, textarea {
-        width: 100% !important;
-        font-size: 1em;
-        padding: 10px;
-    }
-    nav, header, footer, section, div {
-        max-width: 100%;
-        overflow-x: hidden;
-    }
-}
