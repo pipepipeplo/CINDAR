@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Registro</title>
+  <link rel="stylesheet" href="style r.css">
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+</head>
+<body>
+  
+  <div class="container" id="container">
+    <div class="slider">
+      <!-- FORMULARIO LOGIN -->
+      <div class="container-form">
+        <form class="formulario">
+          <h2>Iniciar Sesión</h2>
+          <div class="social-networks">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <ion-icon name="logo-instagram"></ion-icon>
+          </div>
+          <span>Use su correo y contraseña</span>
+          <div class="container-input">
+            <ion-icon name="mail-outline"></ion-icon>
+            <input type="email" placeholder="Email">
+          </div>
+          <div class="container-input">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input type="password" placeholder="Password">
+          </div>
+          <a href="#">¿Olvidaste tu contraseña?</a>
+          <button class="button">INICIAR SESIÓN</button>
+            <p>¿No tienes una cuenta?<a href="#" id="link-register">Registrarse</a></p>
+
+        </form>
+      </div>
+
+      <!-- FORMULARIO REGISTRO -->
+      <div class="container-form">
+        <form class="formulario">
+          <h2>Registrarse</h2>
+          <div class="social-networks">
+            <ion-icon name="logo-whatsapp"></ion-icon>
+            <ion-icon name="logo-instagram"></ion-icon>
+          </div>
+          <span>Use su correo electrónico para registrarse</span>
+          <div class="container-input">
+         <ion-icon name="mail-outline"></ion-icon>
+            <input type="text" placeholder="Email">
+            
+          </div>
+          <div class="container-input">
+            <ion-icon name="lock-closed-outline"></ion-icon>
+            <input type="password" placeholder="Password">
+          </div>
+          <button class="button">REGISTRARSE</button>
+         <p>¿Ya tienes una cuenta? <a href="#" id="link-login">Iniciar sesión</a></p>
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  
+
+  <script src="script.js"></script>
+</body>
+</html>
