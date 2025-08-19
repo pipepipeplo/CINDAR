@@ -7,10 +7,8 @@
   <link rel="stylesheet" href="style r.css">
   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
 </head>
 <body>
-  
   <div class="container" id="container">
     <div class="slider">
       <!-- FORMULARIO LOGIN -->
@@ -21,19 +19,18 @@
             <ion-icon name="logo-whatsapp"></ion-icon>
             <ion-icon name="logo-instagram"></ion-icon>
           </div>
-          <span>Use su correo y contraseña</span>
+          <span>Usa tu correo y contraseña</span>
           <div class="container-input">
             <ion-icon name="mail-outline"></ion-icon>
-            <input type="email" placeholder="Email">
+            <input type="email" placeholder="Correo electrónico" required>
           </div>
           <div class="container-input">
             <ion-icon name="lock-closed-outline"></ion-icon>
-            <input type="password" placeholder="Password">
+            <input type="password" placeholder="Contraseña" required>
           </div>
-          <a href="#">¿Olvidaste tu contraseña?</a>
-          <button class="button">INICIAR SESIÓN</button>
-            <p>¿No tienes una cuenta?<a href="#" id="link-register">Registrarse</a></p>
-
+          <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+          <button type="submit" class="button" id="login-btn">Iniciar Sesión</button>
+          <p class="register-link">¿No tienes una cuenta?<a href="#" id="link-register">Regístrate</a></p>
         </form>
       </div>
 
@@ -45,26 +42,32 @@
             <ion-icon name="logo-whatsapp"></ion-icon>
             <ion-icon name="logo-instagram"></ion-icon>
           </div>
-          <span>Use su correo electrónico para registrarse</span>
+          <span>Usa tu correo electrónico para registrarte</span>
           <div class="container-input">
-         <ion-icon name="mail-outline"></ion-icon>
-            <input type="text" placeholder="Email">
-            
+            <ion-icon name="person-outline"></ion-icon>
+            <input type="text" placeholder="Nombre completo" required>
+          </div>
+          <div class="container-input">
+            <ion-icon name="mail-outline"></ion-icon>
+            <input type="email" placeholder="Correo electrónico" required>
           </div>
           <div class="container-input">
             <ion-icon name="lock-closed-outline"></ion-icon>
-            <input type="password" placeholder="Password">
+            <input type="password" placeholder="Contraseña" required>
           </div>
-          <button class="button">REGISTRARSE</button>
-         <p>¿Ya tienes una cuenta? <a href="#" id="link-login">Iniciar sesión</a></p>
-
+          <button type="submit" class="button">Registrarse</button>
+          <p class="register-link">¿Ya tienes una cuenta?<a href="#" id="link-login">Iniciar sesión</a></p>
         </form>
       </div>
     </div>
   </div>
 
-  
-
   <script src="script.js"></script>
+  <script>
+    document.getElementById('login-btn').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = '../../index.html';
+    });
+  </script>
 </body>
 </html>
