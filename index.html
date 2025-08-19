@@ -3,38 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sidebar Automática</title>
+  <title>CINDAR</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
+  <link rel="icon" href="assets/img/CINDAR.ico" type="image/x-icon">
 </head>
 <body>
 
   <div class="sidebar collapsed" id="sidebar">
     <div class="top">
       <div class="logo">
-        <i class="fas fa-shield-alt"></i>
+        <img src="assets/img/CINDAR.ico" alt="logo CINDAR" style="height: 35px; vertical-align: middle;">
         <span class="logo-text">CINDAR</span>
       </div>
     </div>
 
     <ul class="nav">
-      <!-- Nota: no modifiqué las etiquetas visibles del menú (Inicio, Calendario, Mensajes, Reportes, Ajustes).
-           Cada link tiene data-page para mostrar la sección correspondiente en el main sin recargar. -->
       <li><a href="#" data-page="inicio"><i class="fas fa-house"></i><span class="text">Inicio</span></a></li>
       <li><a href="#" data-page="agenda"><i class="fas fa-calendar-alt"></i><span class="text">Calendario</span></a></li>
       <li><a href="#" data-page="valores"><i class="fas fa-flask"></i><span class="text">Valores</span></a></li>
       <li><a href="#" data-page="registros"><i class="fas fa-chart-bar"></i><span class="text">Reportes</span></a></li>
-      <li><a href="#" data-page="ajustes"><i class="fas fa-database"></i></i><span class="text">Datos</span></a></li>
+      <li><a href="#" data-page="ajustes"><i class="fas fa-database"></i><span class="text">Datos</span></a></li>
     </ul>
 
     <div class="user">
-        <a href="registro/registro/index r.html" style="display: flex; align-items: center; text-decoration: none; color: inherit; width: 100%;">
-          <img src="https://i.pravatar.cc/40" alt="Usuario" />
+        <a href="#" style="display: flex; align-items: center; text-decoration: none; color: inherit; width: 100%;" title="Cerrar sesión">
+          <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
           <div class="user-info">
-            <span class="name">Jordan</span>
-            <span class="role">Cuenta Free</span>
+            <span class="name">Usuario</span>
+            <span class="role" style="font-size: 12px; color: #666;">Click para cerrar sesión</span>
           </div>
         </a>
     </div>
@@ -55,10 +55,8 @@
         <p style="font-size: 1.1rem; color: #555;">
             Explora nuestras secciones para acceder a guías, material de referencia, herramientas interactivas y mucho más.
         </p>
-        
     </section>
 </section>
-
 
     <section id="page-agenda" class="page">
       <h1>Agenda de Cirugías</h1>
@@ -125,53 +123,30 @@
         <tbody></tbody>
       </table>
     </section>
-<section id="page-ajustes" class="page">
-  <h1>Datos</h1>
 
-  <div class="ajustes-grid">
-    <!-- Formulario para agregar paciente -->
-    <div class="ajuste-card">
-      <h3><i class="fas fa-user-injured"></i> Añadir paciente</h3>
-
+    <!-- SECCIÓN DATOS ACTUALIZADA -->
+    <section id="page-ajustes" class="page">
+      <h1>Datos de Pacientes</h1>
+      
       <form id="patient-form" class="form-inline">
         <input type="text" id="patient-name" placeholder="Nombre completo" required />
         <input type="text" id="patient-idnum" placeholder="Documento / ID" required />
         <input type="text" id="patient-age" placeholder="Edad" />
         <input type="text" id="patient-hospital" placeholder="Hospital" />
         <textarea id="patient-notes" rows="4" placeholder="Observaciones / protocolos..."></textarea>
-
-        <div class="row">
-          <button type="submit" class="btn-guardar"><i class="fas fa-plus"></i> Agregar</button>
-          <button type="button" id="export-patients" class="btn-cargar"><i class="fas fa-file-export"></i> Exportar CSV</button>
-        </div>
+        <button type="submit">Agregar Paciente</button>
       </form>
-    </div>
 
-    <!-- Lista de pacientes (tarjetas) -->
-    <div class="ajuste-card" style="flex: 1;">
-      <h3><i class="fas fa-address-book"></i> Pacientes registrados</h3>
-      <div id="patients-list" class="patients-list">
-        <!-- aquí se inyectan las tarjetas -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para ver/editar paciente -->
-  <div id="patient-modal" class="modal" aria-hidden="true">
-    <div class="modal-dialog">
-      <button class="modal-close" id="modal-close" title="Cerrar"><i class="fas fa-times"></i></button>
-      <div id="modal-content" class="modal-content"></div>
-
-      <div class="modal-actions">
-        <button id="modal-edit" class="btn-edit"><i class="fas fa-edit"></i> Editar</button>
-        <button id="modal-save" class="btn-guardar" style="display:none;"><i class="fas fa-save"></i> Guardar</button>
-        <button id="modal-delete" class="btn-delete"><i class="fas fa-trash"></i> Eliminar</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-  
+      <table class="table" id="patients-table">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>ID/Documento</th><th>Edad</th><th>Hospital</th><th>Observaciones</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p class="hint">Los datos se muestran en la tabla y se almacenan localmente en tu navegador.</p>
+    </section>
 
   </main>
 

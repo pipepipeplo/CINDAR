@@ -24,7 +24,7 @@ body {
 
 /* SIDEBAR */
 .sidebar {
-  background-color: #fff;
+  background-color: #f5f5f5c4;
   width: 240px;
   height: 100vh;
   padding: 20px 15px;
@@ -107,6 +107,25 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-avatar i {
+  font-size: 40px;
+  color: #667eea;
+  transition: color 0.3s ease;
+}
+
+.user a:hover .user-avatar i {
+  color: #764ba2;
 }
 
 .user img {
@@ -246,10 +265,13 @@ body {
   margin-top: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 100%;
 }
 
 .table {
   width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
@@ -603,12 +625,18 @@ body {
     position: relative;
     padding: 16px;
     order: 1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   
   .sidebar.collapsed {
     width: 100%;
     height: 60px;
     overflow: hidden;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   
   .sidebar.collapsed .nav {
@@ -616,7 +644,18 @@ body {
   }
   
   .sidebar.collapsed .user {
-    display: none;
+    display: flex;
+    flex-shrink: 0;
+  }
+  
+  .sidebar .top {
+    flex-shrink: 0;
+  }
+  
+  .sidebar .user {
+    position: relative;
+    right: 0;
+    margin-left: auto;
   }
   
   .main-content {
@@ -632,12 +671,23 @@ body {
   }
   
   .nav {
-    display: flex;
+    display: none;
     flex-direction: row;
     overflow-x: auto;
     gap: 10px;
     margin-top: 15px;
     padding-bottom: 10px;
+    position: absolute;
+    top: 70px;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
+  
+  .sidebar:not(.collapsed) .nav {
+    display: flex;
   }
   
   .nav li {
@@ -666,12 +716,40 @@ body {
   }
   
   .table {
-    min-width: 500px;
+    min-width: 100%;
+    width: 100%;
+    font-size: 12px;
+  }
+  
+  .table th, .table td {
+    padding: 8px 4px;
+    font-size: 12px;
+    word-break: break-word;
+    max-width: 100px;
+  }
+  
+  .table th:first-child, .table td:first-child {
+    min-width: 80px;
+  }
+  
+  .table th:last-child, .table td:last-child {
+    min-width: 70px;
+    width: 70px;
+  }
+  
+  .table button {
+    padding: 4px 6px;
+    font-size: 11px;
+    min-height: 32px;
+    white-space: nowrap;
   }
   
   .table-container {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    margin: 20px -16px 0 -16px;
+    border-radius: 0;
+    padding: 0 16px;
   }
   
   .modal-dialog {
@@ -694,10 +772,20 @@ body {
 @media (max-width: 480px) {
   .sidebar {
     padding: 12px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
   
   .sidebar.collapsed {
     height: 50px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .sidebar .user {
+    margin-left: auto;
   }
   
   .main-content {
@@ -778,63 +866,9 @@ body {
     min-height: 32px;
     min-width: 32px;
   }
-}
 
-/* Móviles pequeños (360px y menos) */
-@media (max-width: 360px) {
-  .main-content {
-    padding: 8px;
-  }
-  
-  .sidebar {
-    padding: 8px;
-  }
-  
-  .form-inline input,
-  .form-inline textarea,
-  .form-inline button {
-    padding: 8px;
-    font-size: 14px;
-  }
-  
-  .ajuste-card,
-  .patient-card {
-    padding: 12px;
-  }
-  
-  .modal-dialog {
-    padding: 12px;
-    margin: 4px;
-  }
-  
-  .modal-content {
-    padding-right: 25px;
-  }
-  
-  .table th, .table td {
-    padding: 6px;
-    font-size: 12px;
-  }
-  
-  .logo {
-    font-size: 14px;
-  }
-  
-  .nav a {
-    padding: 6px 8px;
-    font-size: 13px;
-  }
-  
-  h1 {
-    font-size: 1.3rem;
-  }
-  
-  .patient-card .name {
-    font-size: 15px;
-  }
-  
-  .patient-card .meta {
-    font-size: 13px;
+  .user-avatar i {
+    font-size: 35px;
   }
 }
 
@@ -866,12 +900,27 @@ body {
   }
   
   .table {
-    min-width: 400px;
+    min-width: 100%;
+    width: 100%;
+    font-size: 10px;
   }
   
   .table th, .table td {
-    padding: 4px;
-    font-size: 11px;
+    padding: 4px 2px;
+    font-size: 10px;
+    word-break: break-word;
+    max-width: 60px;
+  }
+  
+  .table th:last-child, .table td:last-child {
+    min-width: 60px;
+    width: 60px;
+  }
+  
+  .table button {
+    padding: 2px 4px;
+    font-size: 9px;
+    min-height: 28px;
   }
   
   h1 {
@@ -880,6 +929,10 @@ body {
   
   h3 {
     font-size: 1.1rem;
+  }
+
+  .user-avatar i {
+    font-size: 30px;
   }
 }
 
@@ -930,6 +983,15 @@ body {
     min-height: 44px;
     min-width: 44px;
     padding: 10px;
+  }
+
+  .user-avatar {
+    width: 44px;
+    height: 44px;
+  }
+
+  .user-avatar i {
+    font-size: 44px;
   }
 }
 

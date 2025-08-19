@@ -1,11 +1,54 @@
 // Conservé la referencia original al sidebar y al comportamiento hover/click.
 // Añadí: navegación por data-page, formularios para Valores, Agenda y Registro, persistencia en localStorage básica.
+// NUEVO: Gestión de usuario logueado y logout
 
 const sidebar = document.getElementById('sidebar');
 const navLinks = sidebar.querySelectorAll('.nav a');
 
 // Páginas (secciones)
 const pages = document.querySelectorAll('.page');
+
+// Verificar si hay usuario logueado al cargar la página
+function checkUserAuth() {
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+  
+  if (!currentUser) {
+    // No hay usuario logueado, redirigir a login
+    window.location.href = 'registro/registro/index r.html';
+    return false;
+  }
+  
+  // Actualizar nombre de usuario en el sidebar
+  updateUserInfo(currentUser);
+  return true;
+}
+
+// Actualizar información de usuario en el sidebar
+function updateUserInfo(user) {
+  const userName = document.querySelector('.user-info .name');
+  const userLink = document.querySelector('.user a');
+  
+  if (userName) {
+    userName.textContent = user.name;
+  }
+  
+  // Actualizar el enlace para logout en lugar de ir a registro
+  if (userLink) {
+    userLink.onclick = (e) => {
+      e.preventDefault();
+      logout();
+    };
+    userLink.title = 'Cerrar sesión';
+  }
+}
+
+// Función para cerrar sesión
+function logout() {
+  if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+    localStorage.removeItem('currentUser');
+    window.location.href = 'registro/registro/index r.html';
+  }
+}
 
 function showPage(name) {
   pages.forEach(p => p.classList.remove('active'));
@@ -208,27 +251,68 @@ registroTableBody?.addEventListener('click', (e) => {
 });
 
 /* ===========================
-   Ajustes / Protocolos
+   NUEVA SECCIÓN: Manejo de Pacientes (DATOS) - EN TABLA
    =========================== */
-const protocolosText = document.getElementById('protocolos-text');
-const saveProtocolosBtn = document.getElementById('save-protocolos');
-const loadProtocolosBtn = document.getElementById('load-protocolos');
-const prefCheckbox = document.getElementById('pref-conflict-alert');
+const patientForm = document.getElementById('patient-form');
+const patientsTableBody = document.querySelector('#patients-table tbody');
 
-saveProtocolosBtn?.addEventListener('click', () => {
-  const val = protocolosText.value;
-  localStorage.setItem('protocolos_doc', val);
-  alert('Protocolos guardados localmente.');
+let patientsData = JSON.parse(localStorage.getItem('patientsData') || '[]');
+
+function renderPatients() {
+  if (!patientsTableBody) return;
+  
+  patientsTableBody.innerHTML = '';
+  patientsData.forEach((p, idx) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(p.name)}</td>
+      <td>${escapeHtml(p.idnum)}</td>
+      <td>${escapeHtml(p.age || '-')}</td>
+      <td>${escapeHtml(p.hospital || '-')}</td>
+      <td>${escapeHtml(p.notes || '-')}</td>
+      <td>
+        <button class="btn-delete" data-idx="${idx}">Eliminar</button>
+      </td>
+    `;
+    patientsTableBody.appendChild(tr);
+  });
+}
+
+patientForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('patient-name').value.trim();
+  const idnum = document.getElementById('patient-idnum').value.trim();
+  const age = document.getElementById('patient-age').value.trim();
+  const hospital = document.getElementById('patient-hospital').value.trim();
+  const notes = document.getElementById('patient-notes').value.trim();
+
+  if (!name || !idnum) return alert('Nombre e ID son obligatorios.');
+
+  const newPatient = {
+    id: String(Date.now()),
+    name, 
+    idnum, 
+    age, 
+    hospital, 
+    notes
+  };
+  
+  patientsData.push(newPatient);
+  localStorage.setItem('patientsData', JSON.stringify(patientsData));
+  renderPatients();
+  patientForm.reset();
 });
 
-loadProtocolosBtn?.addEventListener('click', () => {
-  const saved = localStorage.getItem('protocolos_doc') || '';
-  protocolosText.value = saved;
-  alert('Protocolos cargados.');
-});
-
-prefCheckbox?.addEventListener('change', () => {
-  localStorage.setItem('pref_conflict_alert', JSON.stringify(prefCheckbox.checked));
+// Eliminar paciente
+patientsTableBody?.addEventListener('click', (e) => {
+  if (e.target.matches('.btn-delete')) {
+    const idx = parseInt(e.target.dataset.idx, 10);
+    if (confirm('Eliminar este paciente?')) {
+      patientsData.splice(idx, 1);
+      localStorage.setItem('patientsData', JSON.stringify(patientsData));
+      renderPatients();
+    }
+  }
 });
 
 /* ===========================
@@ -244,6 +328,11 @@ function escapeHtml(str) {
 
 // Carga inicial desde localStorage
 function init() {
+  // Verificar autenticación antes de continuar
+  if (!checkUserAuth()) {
+    return; // Si no está autenticado, la función ya redirige
+  }
+
   // Si no hay datos de ejemplo, agrego algunos para mostrar estructura
   if (!localStorage.getItem('valoresData')) {
     valoresData = [
@@ -260,250 +349,41 @@ function init() {
     registroData = [];
     localStorage.setItem('registroData', JSON.stringify(registroData));
   }
-
-  // ----------------- REEMPLAZAR ESTO DENTRO DE init() -----------------
-  // Preferencias (seguro: solo setear checkbox si existe)
-  if (localStorage.getItem('pref_conflict_alert') === null) {
-    localStorage.setItem('pref_conflict_alert', 'true');
-  }
-  const prefVal = JSON.parse(localStorage.getItem('pref_conflict_alert') ?? 'true');
-  if (prefCheckbox) {
-    try {
-      prefCheckbox.checked = prefVal;
-    } catch (err) {
-      // si por alguna razon el elemento no soporta checked, lo ignoramos
-      console.warn('prefCheckbox exists but setting checked failed:', err);
-    }
+  if (!localStorage.getItem('patientsData')) {
+    patientsData = [];
+    localStorage.setItem('patientsData', JSON.stringify(patientsData));
   }
 
-  // Cargar protocolos si existen (solo si el textarea existe)
-  const prot = localStorage.getItem('protocolos_doc');
-  if (prot && protocolosText) protocolosText.value = prot;
-
-  // Refrescar tablas (siempre leer localStorage)
+  // Cargar datos desde localStorage
   valoresData = JSON.parse(localStorage.getItem('valoresData') || '[]');
-  agendaData  = JSON.parse(localStorage.getItem('agendaData') || '[]');
+  agendaData = JSON.parse(localStorage.getItem('agendaData') || '[]');
   registroData = JSON.parse(localStorage.getItem('registroData') || '[]');
+  patientsData = JSON.parse(localStorage.getItem('patientsData') || '[]');
 
+  // Renderizar todas las tablas
   renderValores();
   renderAgenda();
   renderRegistro();
-
-  // Inicializar pacientes (si el módulo existe)
-  if (typeof initPatients === 'function') {
-    initPatients();
-  }
+  renderPatients();
 }
 
-init();
+// Función para mostrar tabs (si la necesitas)
 function showTab(tabName) {
     var contents = document.getElementsByClassName("tab-content");
     for (var i = 0; i < contents.length; i++) {
         contents[i].style.display = "none";
     }
     var tab = document.getElementById(tabName);
-    tab.style.display = "block";
-    tab.classList.add("fade-in");
-}
-/* ==============================
-   Módulo: Pacientes (Datos)
-   ============================== */
-
-let patients = JSON.parse(localStorage.getItem('patientsData') || '[]');
-
-// Helpers (usa escapeHtml si ya existe en tu app.js)
-function savePatients() {
-  localStorage.setItem('patientsData', JSON.stringify(patients));
+    if (tab) {
+        tab.style.display = "block";
+        tab.classList.add("fade-in");
+    }
 }
 
-function renderPatients() {
-  const container = document.getElementById('patients-list');
-  if (!container) return;
-  container.innerHTML = '';
-  if (patients.length === 0) {
-    container.innerHTML = `<div style="color:#666; padding:10px">No hay pacientes registrados.</div>`;
-    return;
-  }
-
-  patients.forEach(p => {
-    const div = document.createElement('div');
-    div.className = 'patient-card';
-    div.dataset.id = p.id;
-    div.innerHTML = `
-      <div class="name">${escapeHtml(p.name)}</div>
-      <div class="meta">ID: ${escapeHtml(p.idnum)} • ${escapeHtml(p.age || '')} años</div>
-      <div class="meta">Hospital: ${escapeHtml(p.hospital || '-')}</div>
-      <div class="patient-actions">
-        <button class="icon-btn view-btn" title="Ver"><i class="fas fa-eye"></i></button>
-        <button class="icon-btn edit-btn" title="Editar"><i class="fas fa-edit"></i></button>
-        <button class="icon-btn del-btn" title="Eliminar"><i class="fas fa-trash"></i></button>
-      </div>
-    `;
-    container.appendChild(div);
-  });
-}
-
-/* Abrir modal con datos */
-function openModalWithPatient(id) {
-  const p = patients.find(x => x.id === id);
-  if (!p) return;
-  const modal = document.getElementById('patient-modal');
-  const content = document.getElementById('modal-content');
-
-  content.innerHTML = `
-    <div><strong>Nombre:</strong> <span id="m-name">${escapeHtml(p.name)}</span></div>
-    <div><strong>ID:</strong> <span id="m-idnum">${escapeHtml(p.idnum)}</span></div>
-    <div><strong>Edad:</strong> <span id="m-age">${escapeHtml(p.age || '')}</span></div>
-    <div><strong>Hospital:</strong> <span id="m-hospital">${escapeHtml(p.hospital || '')}</span></div>
-    <div style="margin-top:8px;"><strong>Observaciones:</strong><div id="m-notes" style="white-space:pre-wrap; margin-top:6px; color:#333;">${escapeHtml(p.notes || '')}</div></div>
-  `;
-
-  // guardamos id en botones para referencia
-  document.getElementById('modal-edit').dataset.id = id;
-  document.getElementById('modal-delete').dataset.id = id;
-  document.getElementById('modal-save').dataset.id = id;
-
-  modal.setAttribute('aria-hidden', 'false');
-}
-
-/* Cerrar modal */
-function closeModal() {
-  const modal = document.getElementById('patient-modal');
-  if (!modal) return;
-  modal.setAttribute('aria-hidden', 'true');
-  // asegurar estado botones
-  document.getElementById('modal-edit').style.display = '';
-  document.getElementById('modal-save').style.display = 'none';
-}
-
-/* Hacer editable el contenido del modal */
-function enableModalEdit(id) {
-  const p = patients.find(x => x.id === id);
-  if (!p) return;
-  const content = document.getElementById('modal-content');
-  content.innerHTML = `
-    <label>Nombre</label>
-    <input id="edit-name" value="${escapeHtml(p.name)}" />
-    <label>ID</label>
-    <input id="edit-idnum" value="${escapeHtml(p.idnum)}" />
-    <label>Edad</label>
-    <input id="edit-age" value="${escapeHtml(p.age || '')}" />
-    <label>Hospital</label>
-    <input id="edit-hospital" value="${escapeHtml(p.hospital || '')}" />
-    <label>Observaciones</label>
-    <textarea id="edit-notes" rows="4">${escapeHtml(p.notes || '')}</textarea>
-  `;
-  document.getElementById('modal-edit').style.display = 'none';
-  document.getElementById('modal-save').style.display = '';
-}
-
-/* Guardar cambios desde modal */
-function saveModalEdit(id) {
-  const idx = patients.findIndex(x => x.id === id);
-  if (idx === -1) return;
-  const p = patients[idx];
-  p.name = document.getElementById('edit-name').value.trim();
-  p.idnum = document.getElementById('edit-idnum').value.trim();
-  p.age = document.getElementById('edit-age').value.trim();
-  p.hospital = document.getElementById('edit-hospital').value.trim();
-  p.notes = document.getElementById('edit-notes').value.trim();
-  patients[idx] = p;
-  savePatients();
-  renderPatients();
-  openModalWithPatient(id);
-}
-
-/* Eliminar paciente */
-function deletePatientById(id) {
-  if (!confirm('Eliminar este paciente? Esta acción no se puede deshacer.')) return;
-  patients = patients.filter(x => x.id !== id);
-  savePatients();
-  renderPatients();
-  closeModal();
-}
-
-/* Export CSV */
-function exportPatientsCSV() {
-  if (patients.length === 0) { alert('No hay pacientes para exportar.'); return; }
-  const headers = ['id','name','idnum','age','hospital','notes'];
-  const rows = patients.map(p => headers.map(h => `"${String(p[h]||'').replace(/"/g,'""')}"`).join(','));
-  const csv = headers.join(',') + '\n' + rows.join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'pacientes.csv';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-/* Eventos: delegación y formulario */
-document.addEventListener('click', function(e){
-  // abrir vista (card) -> ojo: botones dentro
-  if (e.target.closest('.view-btn')) {
-    const id = e.target.closest('.patient-card').dataset.id;
-    openModalWithPatient(id);
-  }
-  // editar desde card
-  if (e.target.closest('.edit-btn')) {
-    const id = e.target.closest('.patient-card').dataset.id;
-    openModalWithPatient(id);
-    enableModalEdit(id);
-  }
-  // eliminar desde card
-  if (e.target.closest('.del-btn')) {
-    const id = e.target.closest('.patient-card').dataset.id;
-    deletePatientById(id);
-  }
+// Agregar listener para cuando el usuario cierre la pestaña/navegador
+window.addEventListener('beforeunload', () => {
+  // Aquí podrías agregar lógica adicional si fuera necesario
 });
 
-const patientForm = document.getElementById('patient-form');
-patientForm?.addEventListener('submit', function(e){
-  e.preventDefault();
-  const name = document.getElementById('patient-name').value.trim();
-  const idnum = document.getElementById('patient-idnum').value.trim();
-  const age = document.getElementById('patient-age').value.trim();
-  const hospital = document.getElementById('patient-hospital').value.trim();
-  const notes = document.getElementById('patient-notes').value.trim();
-
-  if (!name || !idnum) return alert('Nombre e ID son obligatorios.');
-
-  const newPatient = {
-    id: String(Date.now()),
-    name, idnum, age, hospital, notes
-  };
-  patients.unshift(newPatient); // al inicio
-  savePatients();
-  renderPatients();
-  patientForm.reset();
-});
-
-/* Modal botones */
-document.getElementById('modal-close')?.addEventListener('click', closeModal);
-document.getElementById('patient-modal')?.addEventListener('click', function(e){
-  if (e.target === this) closeModal();
-});
-document.getElementById('modal-edit')?.addEventListener('click', function(){
-  const id = this.dataset.id;
-  enableModalEdit(id);
-});
-document.getElementById('modal-save')?.addEventListener('click', function(){
-  const id = this.dataset.id;
-  saveModalEdit(id);
-});
-document.getElementById('modal-delete')?.addEventListener('click', function(){
-  const id = this.dataset.id;
-  deletePatientById(id);
-});
-
-/* Exportar */
-document.getElementById('export-patients')?.addEventListener('click', exportPatientsCSV);
-
-/* Inicializar datos al cargar (invocar desde tu init() o directamente aquí) */
-function initPatients() {
-  // cargar patients (ya se hizo al inicio con let patients = ...)
-  renderPatients();
-}
-
+// Inicializar la aplicación
+init();
