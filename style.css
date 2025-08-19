@@ -867,11 +867,6 @@ body {
     min-width: 32px;
   }
 
-  .user-avatar i {
-    font-size: 35px;
-  }
-}
-
 /* Móviles muy pequeños (320px y menos) */
 @media (max-width: 320px) {
   .main-content {
